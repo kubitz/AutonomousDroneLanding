@@ -98,8 +98,8 @@ array <RiskLevel,24> labels {
 class LzFinder {
 public:
     string dataset;
-    LzFinder(const string& dataset);
-    static Mat draw_lzs(const Mat& img, vector<landingZone> proposed_lzs);
+    explicit LzFinder(const string& dataset);
+    static Mat draw_lzs(const Mat &img, const vector<landingZone>& proposed_lzs, const vector<obstacle>& obstacles);
     vector<landingZone> get_landing_zone_proposals(const vector<obstacle>& obstacles, const int& stride, const int& r_landing,const Mat& img,const string& id);
     Mat get_risk_map(Mat const&  seg_img, int gaussian_sigma=250);
     void rank_lzs(vector<landingZone>& lzs,const Mat& risk_map,float weight_dist=3.0,float weight_risk=15.0);
@@ -147,15 +147,13 @@ vector<landingZone > LzFinder::get_landing_zone_proposals(const vector<obstacle>
     }
     return proposed_lzs;
 }
-Mat LzFinder::draw_lzs(const Mat &img, vector<landingZone> proposed_lzs) {
+Mat LzFinder::draw_lzs(const Mat &img, const vector<landingZone>& proposed_lzs, const vector<obstacle>& obstacles) {
     Mat img_annotated = img;
-    for(landingZone lz: proposed_lzs){
-        if (lz.confidence==0){
-            circle( img_annotated, Point( lz.posX, lz.posY ), lz.radius, Scalar( 0, 0, 255 ), 1, -1 );
-        }
-        else{
-            circle( img_annotated, Point( lz.posX, lz.posY ), lz.radius, Scalar( 0, 255, 0 ), 1, -1 );
-        }
+    for(const auto& lz: proposed_lzs){
+        circle( img_annotated, Point( lz.posX, lz.posY ), lz.radius, Scalar( 0, 255, 0 ), 1, -1 );
+    }
+    for(const auto& obstacle: obstacles){
+        circle( img_annotated, Point( obstacle.posX, obstacle.posY ), obstacle.safety_radius, Scalar( 0, 0, 255 ), 1, -1 );
     }
     return img_annotated;
 }
@@ -217,8 +215,9 @@ void LzFinder::rank_lzs(vector<landingZone>& lzs, const Mat& risk_map, float wei
             lz.confidence = float (weight_dist*dist+weight_risk*risk)/(weight_dist+weight_risk);
         }
     }
-    sort(lzs.begin(),lzs.end(),this->compare_by_confidence);
+    sort(lzs.begin(),lzs.end(),LzFinder::compare_by_confidence);
 }
+
 
 bool LzFinder::compare_by_confidence(const landingZone& a, const landingZone& b)
 {
@@ -247,15 +246,12 @@ int main( int /*argc*/, char** /*argv*/ )
         return 1;
     }
     vector<landingZone > lzs_proposed = lz_finder.get_landing_zone_proposals(obstacles,100,100,img,"test");
-    Mat annotated_img = lz_finder.draw_lzs(img,lzs_proposed);
+    Mat annotated_img = lz_finder.draw_lzs(img,lzs_proposed,obstacles);
     Mat risk_map=lz_finder.get_risk_map(seg_img);
     lz_finder.rank_lzs(lzs_proposed,risk_map);
     applyColorMap(risk_map,risk_map,COLORMAP_JET);
     imshow("Display window", img);
     imshow("risk_map",risk_map);
     int k = waitKey(0); // Wait for a keystroke in the window
-
-
-
     return 0;
 }
