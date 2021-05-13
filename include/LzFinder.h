@@ -12,14 +12,12 @@
 #include <algorithm>
 #include "labels.h"
 
-using namespace cv;
-using namespace std;
 
 typedef struct {
     int posX;
     int posY;
     int radius;
-    string id;
+    std::string id;
     float confidence;
 } landingZone;
 
@@ -27,32 +25,34 @@ typedef struct {
     int posX;
     int posY;
     int safety_radius;
-    string id;
+    std::string id;
 } obstacle;
 
 class LzFinder {
 public:
 
-    explicit LzFinder(const string &dataset);
+    explicit LzFinder(const std::string &dataset);
 
-    static Mat draw_lzs(const Mat &img, const vector<landingZone> &proposed_lzs, const vector<obstacle> &obstacles);
+    static cv::Mat
+    draw_lzs(const cv::Mat &img, const std::vector<landingZone> &proposed_lzs, const std::vector<obstacle> &obstacles);
 
-    vector<landingZone>
-    get_landing_zone_proposals(const vector<obstacle> &obstacles, const int &stride, const int &r_landing,
-                               const Mat &img, const string &id);
+    std::vector<landingZone>
+    get_landing_zone_proposals(const std::vector<obstacle> &obstacles, const int &stride, const int &r_landing,
+                               const cv::Mat &img, const std::string &id);
 
     static int circles_intersect(float x1, float x2, float y1, float y2, float r1, float r2);
 
-    Mat get_risk_map(Mat const &seg_img, int gaussian_sigma = 250);
+    cv::Mat get_risk_map(cv::Mat const &seg_img, int gaussian_sigma = 250);
 
-    void rank_lzs(vector<landingZone> &lzs, const Mat &risk_map, float weight_dist = 3.0, float weight_risk = 15.0);
+    void
+    rank_lzs(std::vector<landingZone> &lzs, const cv::Mat &risk_map, float weight_dist = 3.0, float weight_risk = 15.0);
 
 private:
-    void check_safety_requirements(landingZone &proposed_lzs, const vector<obstacle> &obstacles);
+    void check_safety_requirements(landingZone &proposed_lzs, const std::vector<obstacle> &obstacles);
 
-    static double get_norm_dist(const Mat &img, const Point &coordinates);
+    static double get_norm_dist(const cv::Mat &img, const cv::Point &coordinates);
 
-    double eval_risk_lz(const landingZone &lz, const Mat &risk_map);
+    double eval_risk_lz(const landingZone &lz, const cv::Mat &risk_map);
 
 
     static bool compare_by_confidence(const landingZone &a, const landingZone &b);

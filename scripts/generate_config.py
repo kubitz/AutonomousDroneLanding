@@ -65,7 +65,7 @@ else:
         imgPath = str(basePath.joinpath("data", "imgs", folder.stem, "images", "*"))
         inputImgs = glob.glob(imgPath)
         inputImgs.sort()
-        imgsSequences+=inputImgs
+        imgsSequences += inputImgs
 
     with open(imgsCfgPath, 'w') as f:
         for img in imgsSequences:

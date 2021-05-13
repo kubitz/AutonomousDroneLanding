@@ -4,7 +4,7 @@
 
 #include "../include/labels.h"
 
-unordered_map<std::string, RiskLevel> seg_classes({
+std::unordered_map<std::string, RiskLevel> seg_classes({
                                                           {"unlabeled",     RiskLevel::ZERO},
                                                           {"pavedArea",     RiskLevel::LOW},
                                                           {"dirt",          RiskLevel::ZERO},
@@ -38,7 +38,7 @@ unordered_map<std::string, RiskLevel> seg_classes({
                                                           {"sky",           RiskLevel::VERY_HIGH}
                                                   });
 
-array<RiskLevel, 24> labels_graz{
+std::array<RiskLevel, 24> labels_graz{
         seg_classes.at("unlabeled"),
         seg_classes.at("pavedArea"),
         seg_classes.at("dirt"),
