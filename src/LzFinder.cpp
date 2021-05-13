@@ -27,8 +27,10 @@ int LzFinder::circles_intersect(float x1, float x2, float y1, float y2, float r1
 }
 
 std::vector<landingZone> LzFinder::get_landing_zone_proposals(const std::vector<obstacle> &obstacles, const int &stride,
-                                                         const int &r_landing, const cv::Mat &img, const std::string &id) {
+                                                              const int &r_landing, const cv::Mat &img,
+                                                              const std::string &id) {
     std::vector<landingZone> proposed_lzs;
+    // TODO: add OpenMP for multi-processing
     for (auto y = 0; y < img.rows; y += stride) {
         for (auto x = 0; x < img.cols; x += stride) {
             landingZone lz = {x, y, r_landing, id, NAN};
@@ -39,18 +41,21 @@ std::vector<landingZone> LzFinder::get_landing_zone_proposals(const std::vector<
     return proposed_lzs;
 }
 
-cv::Mat LzFinder::draw_lzs(const cv::Mat &img, const std::vector<landingZone> &proposed_lzs, const std::vector<obstacle> &obstacles) {
+cv::Mat LzFinder::draw_lzs(const cv::Mat &img, const std::vector<landingZone> &proposed_lzs,
+                           const std::vector<obstacle> &obstacles) {
     cv::Mat img_annotated = img;
     for (const auto &lz: proposed_lzs) {
         circle(img_annotated, cv::Point(lz.posX, lz.posY), lz.radius, cv::Scalar(0, 255, 0), 1, -1);
     }
     for (const auto &obstacle: obstacles) {
-        circle(img_annotated, cv::Point(obstacle.posX, obstacle.posY), obstacle.safety_radius, cv::Scalar(0, 0, 255), 1, -1);
+        circle(img_annotated, cv::Point(obstacle.posX, obstacle.posY), obstacle.safety_radius, cv::Scalar(0, 0, 255), 1,
+               -1);
     }
     return img_annotated;
 }
 
 void LzFinder::check_safety_requirements(landingZone &lz, const std::vector<obstacle> &obstacles) {
+    // TODO: add OpenMP for multi-processing
     for (const auto &ob : obstacles) {
         int touch = LzFinder::circles_intersect(lz.posX, ob.posX, lz.posY, ob.posY, lz.radius, ob.safety_radius);
         if (touch < 0) {
@@ -108,7 +113,17 @@ void LzFinder::rank_lzs(std::vector<landingZone> &lzs, const cv::Mat &risk_map, 
     sort(lzs.begin(), lzs.end(), LzFinder::compare_by_confidence);
 }
 
+std::vector<landingZone>
+LzFinder::get_ranked_lzs(const cv::Mat &seg_img, std::vector<obstacle> obstacles, const int &stride,
+                         const std::string &id, const int &r_landing, const int &gaussian_sigma) {
+
+    cv::Mat risk_map = this->get_risk_map(seg_img, gaussian_sigma);
+    std::vector<landingZone> lzs = this->get_landing_zone_proposals(obstacles, stride,r_landing,seg_img,id);
+    this->rank_lzs(lzs,risk_map);
+    return lzs;
+}
 
 bool LzFinder::compare_by_confidence(const landingZone &a, const landingZone &b) {
     return a.confidence < b.confidence;
 }
+

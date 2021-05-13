@@ -28,6 +28,8 @@ typedef struct {
     std::string id;
 } obstacle;
 
+typedef std::vector<landingZone > landingZones;
+
 class LzFinder {
 public:
 
@@ -46,6 +48,8 @@ public:
 
     void
     rank_lzs(std::vector<landingZone> &lzs, const cv::Mat &risk_map, float weight_dist = 3.0, float weight_risk = 15.0);
+
+    std::vector<landingZone > get_ranked_lzs(const cv::Mat& seg_img, std::vector<obstacle> obstacles,const int& stride, const std::string& id, const int& r_landing, const int& gaussian_sigma=255);
 
 private:
     void check_safety_requirements(landingZone &proposed_lzs, const std::vector<obstacle> &obstacles);
