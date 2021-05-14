@@ -11,9 +11,9 @@
 #include <vector>
 #include <functional>
 #include "../include/LzFinder.h"
-#include "filesystem"
+#include "experimental/filesystem"
 
-namespace fs = std::filesystem;
+namespace fs = std::experimental::filesystem;
 
 namespace utils {
     bool iterate_file(std::string fileName, std::function<void(const std::string &)> callback);
