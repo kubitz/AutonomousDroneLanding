@@ -21,6 +21,8 @@ namespace utils {
     void save_lzs(const std::vector<landingZone> &lzs, const std::string &path);
 
     fs::path get_path_results(fs::path img_path);
+
+    fs::path get_data_path(fs::path exec_path);
 }
 
 

@@ -42,3 +42,9 @@ fs::path utils::get_path_results(fs::path img_path) {
     path_results /= seq_name;
     return path_results;
 }
+
+fs::path utils::get_data_path(fs::path exec_path) {
+    fs::path data_path = exec_path.parent_path();
+    data_path /= "data";
+    return data_path;
+}
