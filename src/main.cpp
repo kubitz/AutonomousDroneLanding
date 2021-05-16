@@ -14,7 +14,9 @@ bool SIMULATE = true;
 int main(int /*argc*/, char ** /*argv*/ ) {
     LzFinder lz_finder("test");
     std::vector<fs::path> imgs_to_process;
-    auto resImg = utils::iterate_file("/home/kubitz/CLionProjects/FYPLanding/data/cfg/inputs.cfg",
+    fs::path cwd = fs::current_path();
+    fs::path data_path = utils::get_data_path(cwd);
+    auto resImg = utils::iterate_file(std::string(data_path / "cfg" / "inputs.cfg"),
                                       [&](const std::string &str) {
                                           imgs_to_process.emplace_back(fs::path(str));
                                       });
@@ -23,7 +25,7 @@ int main(int /*argc*/, char ** /*argv*/ ) {
     landingZones lzs;
     if (SIMULATE) {
         std::vector<fs::path> masks_to_process;
-        auto resMask = utils::iterate_file("/home/kubitz/CLionProjects/FYPLanding/data/cfg/masks.cfg",
+        auto resMask = utils::iterate_file(data_path / "cfg" / "masks.cfg",
                                            [&](const std::string &str) {
                                                masks_to_process.emplace_back(fs::path(str));
                                            });
@@ -50,10 +52,10 @@ int main(int /*argc*/, char ** /*argv*/ ) {
     /*
      * This section is just to test the individual functions - it will be removed in the final code
      */
-    cv::Mat img = cv::imread("/home/kubitz/CLionProjects/FYPLanding/data/imgs/0_simulation/images/041007_017.jpg",
+    cv::Mat img = cv::imread(data_path / "imgs" / "0_simulation"/ "images" / "041007_017.jpg",
                              cv::IMREAD_COLOR);
     cv::Mat seg_img = cv::imread(
-            "/home/kubitz/CLionProjects/FYPLanding/data/imgs/0_simulation/masks/041007_017_mask.jpg", cv::IMREAD_COLOR);
+            data_path / "imgs"/ "0_simulation"/"masks"/"041007_017_mask.jpg", cv::IMREAD_COLOR);
 
 
     if (seg_img.empty()) {
