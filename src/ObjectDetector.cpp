@@ -90,45 +90,6 @@ void ObjectDetector::draw_prediction(int classId, float conf, int left, int top,
     top = std::max(top, labelSize.height);
     putText(frame, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0), 1);
 }
-/*
-void ObjectDetector::postprocess(cv::Mat &frame, const std::vector<cv::Mat> &outs) {
-    std::vector<float> confidences;
-    std::vector<int> class_ids;
-    std::vector<cv::Rect> boxes;
-
-    for (auto &out:outs) {
-        auto *data = (float *) out.data;
-        for (int j = 0; j < out.rows; ++j, data += out.cols) {
-            cv::Mat scores = out.row(j).colRange(5, out.cols);
-            cv::Point class_id;
-            double confidence;
-            cv::minMaxLoc(scores, nullptr, &confidence, nullptr, &class_id);
-            if (confidence >= this->net_config.conf_threshold) {
-                cv::Rect box;
-                auto center_x = (int) (data[0] * frame.cols);
-                auto center_y = (int) (data[1] * frame.rows);
-                auto width = (int) (data[2] * frame.cols);
-                auto height = (int) (data[3] * frame.rows);
-                auto left = center_x - width / 2;
-                auto top = center_y - height / 2;
-                class_ids.push_back(class_id.x);
-                confidences.push_back((float) confidence);
-                boxes.emplace_back(cv::Rect(left, top, width, height));
-            }
-        }
-    }
-    std::vector<int> idxs;
-    dnn::NMSBoxes(boxes, confidences, this->net_config.conf_threshold, this->net_config.nms_threshold, idxs);
-    Obstacles obstacles;
-    for (const auto &idx: idxs) {
-        Obstacle obstacle;
-        obstacle.confidence = confidences[idx];
-        obstacle.id = this->labels[class_ids[idx]];
-        obstacle.box = boxes[idx];
-        obstacles.push_back(obstacle);
-        this->draw_prediction(frame, obstacle.box, obstacle.confidence, obstacle.id);
-    }
-}*/
 
 double ObjectDetector::get_inference_time() {
     std::vector<double> layers_inf_times;
