@@ -18,7 +18,7 @@ namespace fs = std::experimental::filesystem;
 namespace utils {
     bool iterate_file(std::string fileName, std::function<void(const std::string &)> callback);
 
-    void save_lzs(const std::vector<landingZone> &lzs, const std::string &path);
+    void save_lzs(const LandingZones &lzs, const std::string &path);
 
     fs::path get_path_results(fs::path img_path);
 

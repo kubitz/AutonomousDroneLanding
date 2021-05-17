@@ -18,7 +18,7 @@ bool utils::iterate_file(std::string fileName, std::function<void(const std::str
     return true;
 }
 
-void utils::save_lzs(const std::vector<landingZone> &lzs, const std::string &path) {
+void utils::save_lzs(const LandingZones &lzs, const std::string &path) {
     std::ofstream fout(path);
     fout << "confidence,radius,position,id" << std::endl;
     for (const auto &lz:lzs) {
