@@ -26,14 +26,14 @@ int LzFinder::circles_intersect(float x1, float x2, float y1, float y2, float r1
     }
 }
 
-std::vector<landingZone> LzFinder::get_landing_zone_proposals(const std::vector<obstacle> &obstacles, const int &stride,
+std::vector<LandingZone> LzFinder::get_landing_zone_proposals(const Obstacles &obstacles, const int &stride,
                                                               const int &r_landing, const cv::Mat &img,
                                                               const std::string &id) {
-    std::vector<landingZone> proposed_lzs;
+    std::vector<LandingZone> proposed_lzs;
     // TODO: add OpenMP for multi-processing
     for (auto y = 0; y < img.rows; y += stride) {
         for (auto x = 0; x < img.cols; x += stride) {
-            landingZone lz = {x, y, r_landing, id, NAN};
+            LandingZone lz = {x, y, r_landing, id, NAN};
             this->check_safety_requirements(lz, obstacles);
             proposed_lzs.push_back(lz);
         }
@@ -41,23 +41,23 @@ std::vector<landingZone> LzFinder::get_landing_zone_proposals(const std::vector<
     return proposed_lzs;
 }
 
-cv::Mat LzFinder::draw_lzs(const cv::Mat &img, const std::vector<landingZone> &proposed_lzs,
-                           const std::vector<obstacle> &obstacles) {
+cv::Mat LzFinder::draw_lzs(const cv::Mat &img, const std::vector<LandingZone> &proposed_lzs,
+                           const Obstacles &obstacles) {
     cv::Mat img_annotated = img;
     for (const auto &lz: proposed_lzs) {
         circle(img_annotated, cv::Point(lz.posX, lz.posY), lz.radius, cv::Scalar(0, 255, 0), 1, -1);
     }
     for (const auto &obstacle: obstacles) {
-        circle(img_annotated, cv::Point(obstacle.posX, obstacle.posY), obstacle.safety_radius, cv::Scalar(0, 0, 255), 1,
+        circle(img_annotated, cv::Point(obstacle.get_center().x, obstacle.get_center().y), obstacle.safety_radius, cv::Scalar(0, 0, 255), 1,
                -1);
     }
     return img_annotated;
 }
 
-void LzFinder::check_safety_requirements(landingZone &lz, const std::vector<obstacle> &obstacles) {
+void LzFinder::check_safety_requirements(LandingZone &lz, const Obstacles &obstacles) {
     // TODO: add OpenMP for multi-processing
-    for (const auto &ob : obstacles) {
-        int touch = LzFinder::circles_intersect(lz.posX, ob.posX, lz.posY, ob.posY, lz.radius, ob.safety_radius);
+    for (auto ob : obstacles) {
+        int touch = LzFinder::circles_intersect(lz.posX, ob.get_center().x, lz.posY, ob.get_center().y, lz.radius, ob.safety_radius);
         if (touch < 0) {
             lz.confidence = 0;
         }
@@ -91,7 +91,7 @@ cv::Mat LzFinder::get_risk_map(cv::Mat const &seg_img, int gaussian_sigma) {
     return risk_map;
 }
 
-double LzFinder::eval_risk_lz(const landingZone &lz, const cv::Mat &risk_map) {
+double LzFinder::eval_risk_lz(const LandingZone &lz, const cv::Mat &risk_map) {
     cv::Mat crop;
     cv::Mat mask(risk_map.rows, risk_map.cols, CV_8UC1, cv::Scalar(0));
     circle(mask, cv::Point(lz.posX, lz.posY), lz.radius, cv::Scalar(255), -1);
@@ -101,7 +101,7 @@ double LzFinder::eval_risk_lz(const landingZone &lz, const cv::Mat &risk_map) {
     return risk / (areaLz * 255);
 }
 
-void LzFinder::rank_lzs(std::vector<landingZone> &lzs, const cv::Mat &risk_map, float weight_dist, float weight_risk) {
+void LzFinder::rank_lzs(std::vector<LandingZone> &lzs, const cv::Mat &risk_map, float weight_dist, float weight_risk) {
 
     for (auto &lz: lzs) {
         if (std::isnan(lz.confidence)) {
@@ -113,17 +113,17 @@ void LzFinder::rank_lzs(std::vector<landingZone> &lzs, const cv::Mat &risk_map, 
     sort(lzs.begin(), lzs.end(), LzFinder::compare_by_confidence);
 }
 
-std::vector<landingZone>
-LzFinder::get_ranked_lzs(const cv::Mat &seg_img, std::vector<obstacle> obstacles, const int &stride,
+std::vector<LandingZone>
+LzFinder::get_ranked_lzs(const cv::Mat &seg_img, Obstacles obstacles, const int &stride,
                          const std::string &id, const int &r_landing, const int &gaussian_sigma) {
 
     cv::Mat risk_map = this->get_risk_map(seg_img, gaussian_sigma);
-    std::vector<landingZone> lzs = this->get_landing_zone_proposals(obstacles, stride,r_landing,seg_img,id);
+    std::vector<LandingZone> lzs = this->get_landing_zone_proposals(obstacles, stride, r_landing, seg_img, id);
     this->rank_lzs(lzs,risk_map);
     return lzs;
 }
 
-bool LzFinder::compare_by_confidence(const landingZone &a, const landingZone &b) {
+bool LzFinder::compare_by_confidence(const LandingZone &a, const LandingZone &b) {
     return a.confidence < b.confidence;
 }
 
